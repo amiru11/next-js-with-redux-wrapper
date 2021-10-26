@@ -30,7 +30,7 @@ const actions = { addCountAsync };
 type TCounterAction = ActionType<typeof actions>;
 
 // Thunk Action
-export const addCountThunk = (count: number): ThunkAction<void, any, null, any> => async (dispatch) => {
+export const addCountThunk = (count: number): ThunkAction<void, any, null, any> => (dispatch) => {
     const { request, success, failure } = addCountAsync;
     dispatch(request());
     try {
@@ -47,6 +47,7 @@ const reducer = createReducer<Record<TCountState>, TCounterAction>(
       return state.set('isLoading', true);
     },
     [ADD_COUNT_SUCCESS]: (state, { payload: count }) => {
+      console.log('ADD_COUNT_SUCCESS', state.get('count'));
       return state.set('count', count).set('isLoading', false);
     },
     [ADD_COUNT_FAILURE]: (state, action) => {

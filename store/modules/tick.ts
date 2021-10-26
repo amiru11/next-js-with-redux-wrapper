@@ -1,6 +1,9 @@
 import { createAsyncAction, ActionType, createReducer } from 'typesafe-actions';
+import type { Dispatch } from 'redux';
 import { ThunkAction } from 'redux-thunk';
 import { Record } from 'immutable';
+import { StoreState } from 'store';
+import { AnyAction } from 'redux';
 
 // Action Type
 const TICK_PENDING = 'tick/TICK_PENDING';
@@ -10,15 +13,9 @@ const TICK_FAILURE = 'tick/TICK_FAILURE';
 // STATE
 type TTickState = {
   isLoading: boolean;
-  light: boolean;
+  isLight: boolean;
   lastUpdate: number;
 };
-
-const initialState = Record({
-  isLoading: false,
-  light: false,
-  lastUpdate: 0,
-});
 
 // Action function Async
 export const tickAsync = createAsyncAction(TICK_PENDING, TICK_SUCCESS, TICK_FAILURE)<undefined, any, any>();
@@ -27,15 +24,21 @@ const actions = { tickAsync };
 
 type TCounterAction = ActionType<typeof actions>;
 
+const initialState = Record({
+  isLoading: false,
+  isLight: false,
+  lastUpdate: 0,
+});
+
 export const serverRenderClock =
-  (isServer: string): ThunkAction<void, any, null, any> =>
-  async (dispatch) => {
+  (isServer: string): ThunkAction<Promise<void>, StoreState, null, TCounterAction> =>
+  async (dispatch: Dispatch) => {
     const { request, success, failure } = tickAsync;
     dispatch(request());
     try {
       dispatch(
         success({
-          light: !isServer,
+          isLight: !isServer,
           ts: Date.now(),
         })
       );
@@ -44,11 +47,11 @@ export const serverRenderClock =
     }
   };
 
-export const startClock = (): ThunkAction<void, any, null, any> => (dispatch) => {
+export const startClock = (): ThunkAction<number | undefined, StoreState, null, TCounterAction> => (dispatch) => {
   const { request, success, failure } = tickAsync;
   dispatch(request());
   try {
-    setInterval(() => dispatch(success({ light: true, ts: Date.now() })), 1000);
+    return window.setInterval(() => dispatch(success({ isLight: true, ts: Date.now() })), 1000);
   } catch (err) {
     dispatch(failure(err));
   }
@@ -59,8 +62,8 @@ const reducer = createReducer<Record<TTickState>, TCounterAction>(new initialSta
     return state.set('isLoading', true);
   },
   [TICK_SUCCESS]: (state, { payload }) => {
-    const { light, ts } = payload;
-    return state.set('light', !!light).set('lastUpdate', ts).set('isLoading', false);
+    const { isLight, ts } = payload;
+    return state.set('isLight', !!isLight).set('lastUpdate', ts).set('isLoading', false);
   },
   [TICK_FAILURE]: (state, action) => {
     return state.set('isLoading', false);
