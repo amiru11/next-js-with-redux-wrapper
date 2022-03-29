@@ -1,29 +1,22 @@
 import { useEffect } from 'react';
-import { bindActionCreators, Dispatch } from 'redux';
 import { useSelector, useDispatch, shallowEqual } from 'react-redux';
 import type { NextPage, GetServerSidePropsResult } from 'next';
 import Head from 'next/head';
 
 import { StoreState, wrapper } from 'store';
-import { addCountThunk } from 'store/modules/count';
-import { serverRenderClock, startClock } from 'store/modules/tick';
+import { setCount } from 'store/modules/count';
+// import { serverRenderClock, startClock } from 'store/modules/tick';
 
 import Page from 'components/Page';
 
 import styles, { container, main } from './index.styled';
 
-const mapDispatchToProps = (dispatch: Dispatch) => {
-  return {
-    serverRenderClock: bindActionCreators(serverRenderClock, dispatch),
-  }
-}
-
 export const getServerSideProps = wrapper.getServerSideProps(
   (store) =>
     async (ctx): Promise<GetServerSidePropsResult<any>> => {
       try {
-        const { serverRenderClock } = mapDispatchToProps(store.dispatch);
-        await store.dispatch(serverRenderClock(true));
+        // const { serverRenderClock } = mapDispatchToProps(store.dispatch);
+        await store.dispatch(setCount(1231));
       } catch (err) {}
 
       return {
@@ -33,15 +26,18 @@ export const getServerSideProps = wrapper.getServerSideProps(
 );
 
 const Home: NextPage = () => {
-  const {} = useSelector((state: StoreState) => ({}), shallowEqual);
-  const dispatch = useDispatch();
-  useEffect(() => {
-    const timer: any = dispatch(startClock());
+  const state =  useSelector((state: StoreState) => ({
+    ...state,
+  }), shallowEqual);
+  // const dispatch = useDispatch();
+  // useEffect(() => {
+  //   const timer: any = dispatch(setCount(1));
     
-    return () => {
-      clearInterval(timer);
-    }
-  }, [dispatch]);
+  //   return () => {
+  //     clearInterval(timer);
+  //   }
+  // }, [dispatch]);
+  console.log('count', state);
   return (
     <div className={container.className}>
       <Head>
@@ -80,7 +76,7 @@ const Home: NextPage = () => {
             <p>Instantly deploy your Next.js site to a public URL with Vercel.</p>
           </a>
         </div>
-        <Page title="Index Page" linkTo="/other" />
+        {/* <Page title="Index Page" linkTo="/other" /> */}
       </main>
 
       <footer>

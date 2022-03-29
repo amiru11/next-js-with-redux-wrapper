@@ -1,6 +1,4 @@
-import { createAsyncAction, ActionType, createReducer } from 'typesafe-actions';
-import { ThunkAction } from 'redux-thunk';
-import { Record } from 'immutable';
+import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
 // Action Type
 const ADD_COUNT_PENDING = 'count/ADD_COUNT_PENDING';
@@ -13,47 +11,22 @@ type TCountState = {
   count: number;
 };
 
-const initialState = Record({
+const initialState: TCountState = {
   isLoading: false,
   count: 0,
-});
+};
 
-// Action function Async
-export const addCountAsync = createAsyncAction(
-  ADD_COUNT_PENDING,
-  ADD_COUNT_SUCCESS,
-  ADD_COUNT_FAILURE
-)<undefined, any, any>();
-
-const actions = { addCountAsync };
-
-type TCounterAction = ActionType<typeof actions>;
-
-// Thunk Action
-export const addCountThunk = (count: number): ThunkAction<void, any, null, any> => (dispatch) => {
-    const { request, success, failure } = addCountAsync;
-    dispatch(request());
-    try {
-      dispatch(success(count));
-    } catch (err) {
-      dispatch(failure(err));
+const countSlice = createSlice({
+  name: 'count',
+  initialState,
+  reducers: {
+    setCount(state: TCountState, action: PayloadAction<number>) {
+      console.log('setCount', action.payload);
+      state.count = action.payload;
     }
-  };
+  },
+})
 
-const reducer = createReducer<Record<TCountState>, TCounterAction>(
-  new initialState(),
-  {
-    [ADD_COUNT_PENDING]: (state, action) => {
-      return state.set('isLoading', true);
-    },
-    [ADD_COUNT_SUCCESS]: (state, { payload: count }) => {
-      console.log('ADD_COUNT_SUCCESS', state.get('count'));
-      return state.set('count', count).set('isLoading', false);
-    },
-    [ADD_COUNT_FAILURE]: (state, action) => {
-      return state.set('isLoading', false);
-    },
-  }
-);
+export const { setCount } = countSlice.actions;
 
-export default reducer;
+export default countSlice.reducer;
